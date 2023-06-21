@@ -25,7 +25,7 @@ const products = productsFromServer.map((product) => {
 export const App = () => {
   const [query, setQuery] = useState('');
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
 
   const handleSelectUser = (userId) => {
     setSelectedUserId(userId);
@@ -40,15 +40,21 @@ export const App = () => {
   });
 
   const handleSelectCategory = (categoryId) => {
-    setSelectedCategoryId(categoryId);
+    if (selectedCategoryIds.includes(categoryId)) {
+      setSelectedCategoryIds(prevIds => prevIds.filter(
+        id => id !== categoryId,
+      ));
+    } else {
+      setSelectedCategoryIds(prevIds => [...prevIds, categoryId]);
+    }
   };
 
   const filteredByCategory = filteredByUser.filter((product) => {
-    if (!selectedCategoryId) {
+    if (selectedCategoryIds.length === 0) {
       return product;
     }
 
-    return product.category.id === selectedCategoryId;
+    return selectedCategoryIds.includes(product.category.id);
   });
 
   const formattedQuery = query.toLowerCase().trim();
@@ -70,7 +76,7 @@ export const App = () => {
   const handleReset = () => {
     setQuery('');
     setSelectedUserId(null);
-    setSelectedCategoryId(null);
+    setSelectedCategoryIds([]);
   };
 
   return (
@@ -138,8 +144,10 @@ export const App = () => {
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
-                onClick={() => setSelectedCategoryId(null)}
+                className={cn('button is-success mr-6', {
+                  'is-outlined': selectedCategoryIds.length > 0,
+                })}
+                onClick={() => setSelectedCategoryIds([])}
               >
                 All
               </a>
@@ -148,7 +156,7 @@ export const App = () => {
                 <a
                   data-cy="Category"
                   className={cn('button mr-2 my-1', {
-                    'is-info': category.id === selectedCategoryId,
+                    'is-info': selectedCategoryIds.includes(category.id),
                   })}
                   href="#/"
                   key={category.id}
